@@ -4,14 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Directory Lookup</title>
-    <!-- Tailwind CSS for modern, clean styling -->
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Papa Parse Library to read CSV data -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col items-center justify-start p-6 font-sans">
 
     <div class="w-full max-w-2xl bg-white rounded-xl shadow-md border border-slate-100 p-8 mt-10">
         <h1 class="text-3xl font-extrabold text-slate-800 text-center mb-2">Classroom Finder</h1>
-        <p class="text-slate-500 text-center mb-8">Enter a class identifier (e.g., CSE-A, CSE-B, or Mech-A) to view the student roster.</p>
+        <p class="text-slate-500 text-center mb-8">Type a class identifier to pull real-time rosters directly from your sheet.</p>
 
         <!-- Search input group -->
         <div class="flex gap-3 mb-8">
@@ -29,6 +31,11 @@
             </button>
         </div>
 
+        <!-- Loading Indicator -->
+        <div id="loadingState" class="text-center py-4 text-indigo-600 font-semibold">
+            Loading student directory data...
+        </div>
+
         <!-- Result Display Area -->
         <div id="resultsArea" class="hidden">
             <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
@@ -39,83 +46,42 @@
             </div>
             
             <ul id="studentsList" class="divide-y divide-slate-100">
-                <!-- Students will be dynamically injected here -->
+                <!-- Data will go here dynamically -->
             </ul>
         </div>
 
         <!-- Empty State / Error message -->
         <div id="emptyState" class="hidden text-center py-10">
-            <p class="text-slate-400 text-lg">No students found for that class code. Try entering <strong class="text-slate-600">CSE-A</strong> or <strong class="text-slate-600">CSE-B</strong>.</p>
+            <p id="emptyText" class="text-slate-400 text-lg">No students found for that class code.</p>
         </div>
     </div>
 
     <script>
-        // Your database of classes and students
-        // You can add, edit, or remove students here.
-        const classDatabase = {
-            "CSE-A": [
-                { id: "101", name: "Aarav Sharma" },
-                { id: "102", name: "Aditi Rao" },
-                { id: "103", name: "Ananya Patel" },
-                { id: "104", name: "Devansh Verma" }
-            ],
-            "CSE-B": [
-                { id: "201", name: "Isha Gupta" },
-                { id: "202", name: "Kabir Singh" },
-                { id: "203", name: "Rohan Das" }
-            ],
-            "Mech-A": [
-                { id: "301", name: "Arjun Mehta" },
-                { id: "302", name: "Vikram Malhotra" }
-            ]
-        };
+        let parsedDatabase = [];
+
+        // Fetch and parse the CSV file when the website loads
+        window.addEventListener('DOMContentLoaded', () => {
+            // "students.csv" must be saved in the exact same GitHub folder
+            Papa.parse('students.csv', {
+                download: true,
+                header: true, // Uses the first row of your Excel sheet as headers (Class, Roll, Name)
+                skipEmptyLines: true,
+                complete: function(results) {
+                    parsedDatabase = results.data;
+                    document.getElementById("loadingState").classList.add("hidden");
+                },
+                error: function(err) {
+                    console.error("Error parsing CSV:", err);
+                    document.getElementById("loadingState").textContent = "Error loading spreadsheet database.";
+                }
+            });
+        });
 
         function searchClass() {
-            // Get user input and normalize it (trim spaces and convert to uppercase)
+            // Get user input and normalize it (remove spaces, convert to uppercase)
             const inputVal = document.getElementById("classInput").value.trim().toUpperCase();
             
             const resultsArea = document.getElementById("resultsArea");
             const emptyState = document.getElementById("emptyState");
             const studentsList = document.getElementById("studentsList");
-            const currentClassName = document.getElementById("currentClassName");
-            const studentCount = document.getElementById("studentCount");
-
-            // Clear previous results
-            studentsList.innerHTML = "";
-
-            if (classDatabase[inputVal]) {
-                // If class exists, show results and hide empty state
-                resultsArea.classList.remove("hidden");
-                emptyState.classList.add("hidden");
-                
-                currentClassName.textContent = inputVal;
-                
-                const students = classDatabase[inputVal];
-                studentCount.textContent = ${students.length} Student(s);
-
-                // Loop through students and create HTML elements
-                students.forEach(student => {
-                    const li = document.createElement("li");
-                    li.className = "py-3 flex justify-between items-center hover:bg-slate-50 px-2 rounded-lg transition";
-                    li.innerHTML = `
-                        <span class="font-medium text-slate-700">${student.name}</span>
-                        <span class="text-sm text-slate-400 font-mono">Roll: ${student.id}</span>
-                    `;
-                    studentsList.appendChild(li);
-                });
-            } else {
-                // If class doesn't exist, hide results and show empty state
-                resultsArea.classList.add("hidden");
-                emptyState.classList.remove("hidden");
-            }
-        }
-
-        // Allow pressing "Enter" in the input box to trigger search
-        document.getElementById("classInput").addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                searchClass();
-            }
-        });
-    </script>
-</body>
-</html>
+            const cur
