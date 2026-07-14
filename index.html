@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Directory Lookup</title>
+    <!-- Tailwind CSS for modern, clean styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col items-center justify-start p-6 font-sans">
+
+    <div class="w-full max-w-2xl bg-white rounded-xl shadow-md border border-slate-100 p-8 mt-10">
+        <h1 class="text-3xl font-extrabold text-slate-800 text-center mb-2">Classroom Finder</h1>
+        <p class="text-slate-500 text-center mb-8">Enter a class identifier (e.g., CSE-A, CSE-B, or Mech-A) to view the student roster.</p>
+
+        <!-- Search input group -->
+        <div class="flex gap-3 mb-8">
+            <input 
+                type="text" 
+                id="classInput" 
+                placeholder="Enter class name (e.g., CSE-A)..." 
+                class="flex-1 px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition text-slate-700"
+            />
+            <button 
+                onclick="searchClass()" 
+                class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+                Search
+            </button>
+        </div>
+
+        <!-- Result Display Area -->
+        <div id="resultsArea" class="hidden">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
+                <h2 class="text-xl font-bold text-slate-700">
+                    Results for <span id="currentClassName" class="text-indigo-600"></span>
+                </h2>
+                <span id="studentCount" class="bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-1 rounded-full"></span>
+            </div>
+            
+            <ul id="studentsList" class="divide-y divide-slate-100">
+                <!-- Students will be dynamically injected here -->
+            </ul>
+        </div>
+
+        <!-- Empty State / Error message -->
+        <div id="emptyState" class="hidden text-center py-10">
+            <p class="text-slate-400 text-lg">No students found for that class code. Try entering <strong class="text-slate-600">CSE-A</strong> or <strong class="text-slate-600">CSE-B</strong>.</p>
+        </div>
+    </div>
+
+    <script>
+        // Your database of classes and students
+        // You can add, edit, or remove students here.
+        const classDatabase = {
+            "CSE-A": [
+                { id: "101", name: "Aarav Sharma" },
+                { id: "102", name: "Aditi Rao" },
+                { id: "103", name: "Ananya Patel" },
+                { id: "104", name: "Devansh Verma" }
+            ],
+            "CSE-B": [
+                { id: "201", name: "Isha Gupta" },
+                { id: "202", name: "Kabir Singh" },
+                { id: "203", name: "Rohan Das" }
+            ],
+            "Mech-A": [
+                { id: "301", name: "Arjun Mehta" },
+                { id: "302", name: "Vikram Malhotra" }
+            ]
+        };
+
+        function searchClass() {
+            // Get user input and normalize it (trim spaces and convert to uppercase)
+            const inputVal = document.getElementById("classInput").value.trim().toUpperCase();
+            
+            const resultsArea = document.getElementById("resultsArea");
+            const emptyState = document.getElementById("emptyState");
+            const studentsList = document.getElementById("studentsList");
+            const currentClassName = document.getElementById("currentClassName");
+            const studentCount = document.getElementById("studentCount");
+
+            // Clear previous results
+            studentsList.innerHTML = "";
+
+            if (classDatabase[inputVal]) {
+                // If class exists, show results and hide empty state
+                resultsArea.classList.remove("hidden");
+                emptyState.classList.add("hidden");
+                
+                currentClassName.textContent = inputVal;
+                
+                const students = classDatabase[inputVal];
+                studentCount.textContent = ${students.length} Student(s);
+
+                // Loop through students and create HTML elements
+                students.forEach(student => {
+                    const li = document.createElement("li");
+                    li.className = "py-3 flex justify-between items-center hover:bg-slate-50 px-2 rounded-lg transition";
+                    li.innerHTML = `
+                        <span class="font-medium text-slate-700">${student.name}</span>
+                        <span class="text-sm text-slate-400 font-mono">Roll: ${student.id}</span>
+                    `;
+                    studentsList.appendChild(li);
+                });
+            } else {
+                // If class doesn't exist, hide results and show empty state
+                resultsArea.classList.add("hidden");
+                emptyState.classList.remove("hidden");
+            }
+        }
+
+        // Allow pressing "Enter" in the input box to trigger search
+        document.getElementById("classInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                searchClass();
+            }
+        });
+    </script>
+</body>
+</html>
